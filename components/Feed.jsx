@@ -118,7 +118,7 @@ const Feed = () => {
   return (
     <section className="feed">
       <form className="relative w-full flex-center">
-        <input type="text" placeholder="Search for a tag or a username" value={searchText} onChange={handleSearchChange} required className="search_input peer" />
+        <input type="text" placeholder="Search for a prompt, tag, or username" value={searchText} onChange={handleSearchChange} required className="search_input peer" />
       </form>
 
       {searchText ? <PromptCardList data={searchedResults} handleTagClick={handleTagClick} handleLikePrompt={handleLikePrompt} /> : <PromptCardList data={posts} handleTagClick={handleTagClick} handleLikePrompt={handleLikePrompt} handleUnLikePrompt={handleUnLikePrompt} />}
