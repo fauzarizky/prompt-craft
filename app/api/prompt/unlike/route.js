@@ -2,31 +2,27 @@ import Prompt from "@models/prompt";
 import { connectToDB } from "@utils/database";
 
 export const POST = async (req, res) => {
-  const { userId, promptId } = req.body;
-
+  const { user, _id } = await req.json();
   try {
     await connectToDB();
     const updatedPrompt = await Prompt.findByIdAndUpdate(
-      promptId,
+      _id,
       {
-        $pull: { // to remove the userId from the likes array
-          likes: userId,
+        $pull: {
+          // to remove the user from the likes array
+          likes: user,
         },
-        $inc: { // decrement the likesCount by 1
+        $inc: {
+          // decrement the likesCount by 1
           likesCount: -1,
         },
       },
       { new: true } // to inform that we want to return the updated prompt
     );
 
-    res.status(200).json({
-      ok: true,
-      data: updatedPrompt,
-    });
+    return new Response(JSON.stringify(updatedPrompt), { status: 200 });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to unlike prompt",
-    });
+    console.error("Failed to unlike prompt:", error);
+    return new Response(`Failed to unlike prompt`, { status: 500 });
   }
 };

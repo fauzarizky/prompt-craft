@@ -5,14 +5,24 @@ import { useSession } from "next-auth/react";
 
 import Profile from "@components/Profile";
 import { useRouter } from "next/navigation";
+import usePrompt from "@hooks/usePrompt";
 
 const MyProfile = () => {
   const { data: session } = useSession();
-  const [posts, setPosts] = useState([]);
+  const { posts, setPosts, fetchPosts, fetchCurrentLoginUserPosts, handleLikePrompt, handleUnLikePrompt } = usePrompt();
+  const [isActiveTab, setIsActiveTab] = useState(1);
+  const likedPosts = posts.filter((post) => post.likes.find((like) => like.id === session?.user.id));
+  const selectedData = isActiveTab === 1 ? posts : likedPosts;
   const router = useRouter();
 
-  const handleEdit = (post) => {
-    router.push(`/update-prompt?id=${post._id}`);
+  const handleEdit = (post) => router.push(`/update-prompt?id=${post._id}`);
+  const handleTabChange = (index) => {
+    setIsActiveTab(index);
+    if (index === 1) {
+      fetchCurrentLoginUserPosts(session);
+    } else if (index === 2) {
+      fetchPosts();
+    }
   };
 
   const handleDelete = async (post) => {
@@ -32,18 +42,24 @@ const MyProfile = () => {
       }
     }
   };
-  const fetchPosts = async () => {
-    const response = await fetch(`/api/users/${session?.user.id}/posts`);
-    const data = await response.json();
-
-    setPosts(data);
-  };
 
   useEffect(() => {
-    if (session?.user.id) fetchPosts();
+    if (session?.user.id) fetchCurrentLoginUserPosts(session);
   }, []);
 
-  return <Profile name={"my"} desc={"Welcome to your personalized profile page"} data={posts} handleEdit={handleEdit} handleDelete={handleDelete} />;
+  return (
+    <Profile
+      name={"my"}
+      desc={"Welcome to your personalized profile page"}
+      data={selectedData}
+      isActive={isActiveTab}
+      handleEdit={handleEdit}
+      handleDelete={handleDelete}
+      handleTabChange={handleTabChange}
+      handleLikePrompt={handleLikePrompt}
+      handleUnLikePrompt={handleUnLikePrompt}
+    />
+  );
 };
 
 export default MyProfile;

@@ -2,12 +2,12 @@ import Prompt from "@models/prompt";
 import { connectToDB } from "@utils/database";
 
 export const POST = async (req, res) => {
-  const { user, promptId } = req.body;
+  const { user, _id } = await req.json();
 
   try {
     await connectToDB();
     const updatedPrompt = await Prompt.findByIdAndUpdate(
-      promptId,
+      _id,
       {
         $addToSet: {
           likes: user,
@@ -21,6 +21,7 @@ export const POST = async (req, res) => {
 
     return new Response(JSON.stringify(updatedPrompt), { status: 200 });
   } catch (error) {
-    return new Response("Failed to like prompt", { status: 500 });
+    console.error("Failed to like prompt:", error);
+    return new Response(`Failed to like prompt : ${error}`, { status: 500 });
   }
 };

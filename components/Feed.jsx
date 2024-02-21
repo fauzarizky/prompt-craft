@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import PromptCard from "./PromptCard";
-import { toast } from "sonner";
+import usePrompt from "@hooks/usePrompt";
 
 const PromptCardList = ({ data, handleTagClick, handleLikePrompt, handleUnLikePrompt }) => {
   return (
@@ -15,17 +15,10 @@ const PromptCardList = ({ data, handleTagClick, handleLikePrompt, handleUnLikePr
 };
 
 const Feed = () => {
-  const [posts, setPosts] = useState([]);
+  const { posts, fetchPosts, handleLikePrompt, handleUnLikePrompt } = usePrompt();
   const [searchText, setSearchText] = useState("");
   const [searchTimeout, setSearchTimeout] = useState(null);
   const [searchedResults, setSearchedResults] = useState([]);
-
-  const fetchPosts = async () => {
-    const response = await fetch("/api/prompt");
-    const data = await response.json();
-
-    setPosts(data);
-  };
 
   const handleTagClick = async (tag) => {
     setSearchText(tag);
@@ -33,67 +26,6 @@ const Feed = () => {
     const searchResult = filterPosts(tag);
     setSearchedResults(searchResult);
   };
-
-  const handleLikePrompt = async (promptId, userId) => {
-
-    try {
-      const response = await fetch('/api/prompt/like', {
-        method: 'POST',
-        body: JSON.stringify({
-          promptId,
-          userId
-        })
-      })
-
-      if (response.ok){
-        fetchPosts()
-        toast({
-          title: "Success",
-          message: "Liked prompt",
-          type: "success",
-          duration: 1500
-        })
-      }
-    } catch (error) {
-      console.log(error)
-      toast({
-        title: "Error",
-        message: "Failed to like prompt",
-        type: "error",
-        duration: 1500
-      })
-    }
-  }
-
-  const handleUnLikePrompt = async (promptId, userId) => {
-    try {
-      const response = await fetch('/api/prompt/unlike', {
-        method: 'POST',
-        body: JSON.stringify({
-          promptId,
-          userId
-        })
-      })
-
-      if (response.ok){
-        fetchPosts()
-        toast({
-          title: "Success",
-          message: "Unliked prompt",
-          type: "success",
-          duration: 1500
-        })
-      }
-    } catch (error) {
-      console.log(error)
-      toast({
-        title: "Error",
-        message: "Failed to like prompt",
-        type: "error",
-        duration: 1500
-      })
-    }
-  }
 
   const filterPosts = (search) => {
     const regex = new RegExp(search, "i"); // i for case insensitive
@@ -121,7 +53,7 @@ const Feed = () => {
         <input type="text" placeholder="Search for a prompt, tag, or username" value={searchText} onChange={handleSearchChange} required className="search_input peer" />
       </form>
 
-      {searchText ? <PromptCardList data={searchedResults} handleTagClick={handleTagClick} handleLikePrompt={handleLikePrompt} /> : <PromptCardList data={posts} handleTagClick={handleTagClick} handleLikePrompt={handleLikePrompt} handleUnLikePrompt={handleUnLikePrompt} />}
+      {searchText ? <PromptCardList data={searchedResults} handleTagClick={handleTagClick} /> : <PromptCardList data={posts} handleTagClick={handleTagClick} handleLikePrompt={handleLikePrompt} handleUnLikePrompt={handleUnLikePrompt} />}
     </section>
   );
 };

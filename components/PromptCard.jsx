@@ -4,12 +4,30 @@ import { useState } from "react";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
+import { toast } from "sonner";
 
-const PromptCard = ({ post, handleTagClick, handleEdit, handleDelete, handleLikePrompt, handleUnLikePrompt }) => {
+const PromptCard = ({ post, params, handleTagClick, handleEdit, handleDelete, handleLikePrompt, handleUnLikePrompt }) => {
   const { data: session } = useSession();
   const pathName = usePathname();
   const router = useRouter();
   const [copied, setcopied] = useState("");
+  const isLikedByUser = post?.likes?.find((like) => like.id === session?.user.id);
+
+  const handleLikeBtn = (_id, user) => {
+    if (session) {
+      handleLikePrompt(_id, user, pathName, session, params);
+    } else {
+      toast.error("Please sign in to like a prompt");
+    }
+  };
+
+  const handleUnLikeBtn = (_id, user) => {
+    if (session) {
+      handleUnLikePrompt(_id, user, pathName, session, params);
+    } else {
+      toast.error("Please sign in to unlike a prompt");
+    }
+  };
 
   const handleCopy = () => {
     setcopied(post.prompt);
@@ -21,6 +39,7 @@ const PromptCard = ({ post, handleTagClick, handleEdit, handleDelete, handleLike
     if (post.creator._id === session?.user.id) return router.push(`/profile`);
     router.push(`/profile/${post.creator?._id}?name=${post.creator?.username}`);
   };
+
   return (
     <div className="prompt_card">
       <div className="flex justify-between items-start gap-5">
@@ -47,11 +66,18 @@ const PromptCard = ({ post, handleTagClick, handleEdit, handleDelete, handleLike
         #{post.tag}
       </p>
 
-      {/* Upcoming Feature */}
-      {/* <button className="flex items-center gap-[3px]" onClick={() => handleLikePrompt(post._id, session.user)}>
-        <ion-icon name="heart-outline"></ion-icon>
+      <div className="flex gap-[3px]">
+        {isLikedByUser ? (
+          <button onClick={() => handleUnLikeBtn(post._id, session?.user)}>
+            <ion-icon name="heart"></ion-icon>
+          </button>
+        ) : (
+          <button onClick={() => handleLikeBtn(post._id, session?.user)}>
+            <ion-icon name="heart-outline"></ion-icon>
+          </button>
+        )}
         <p className="font-inter text-sm">{post.likesCount}</p>
-      </button> */}
+      </div>
 
       {session?.user.id === post.creator._id && pathName === "/profile" && (
         <div className="mt-5 flex-center gap-4 border-t border-gray-100 pt-3">
